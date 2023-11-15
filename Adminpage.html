@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <div >
+    //var name = showPrompt().text;
+    <label for="dropdown-menu">drop down Previous editors:</label>
+    <select id="dropdown-menu">
+    <option value="option1">name </option>
+    <option value="option2">Option 2</option>
+    <option value="option3">Option 3</option>
+    </select>
+</div>
+    <base target="_top">
+      <title>My Sidebar</title>
+    <style>
+      /* Style for the sidebar container */
+      .sidebar {
+        background-color: #f1f1f1;
+        height: 100%;
+        width: 80px;
+        position: fixed;
+        top: 0;
+        left: 0;
+      }
+
+      /* Style for the sidebar links */
+      .sidebar a {
+        display: block;
+        color: black;
+        padding: 13px;
+        text-decoration: none;
+      }
+
+      /* Style for the active/current link */
+      .sidebar a.active {
+        background-color: #4CAF50;
+        color: white;
+      }
+
+      /* Style for the content */
+      .content {
+        margin-left: 100px; /* Same as the width of the sidebar */
+        padding: 16px;
+        height: 1000px; /* Temporary height */
+      }
+
+      /* Style for the two columns */
+      .column {
+        float: left;
+        width: 50%;
+        padding: 16px;
+      }
+
+      /* Clear the decimal values after the columns */
+      /* Home can include the current project names that are being worked on and all the editors currently shared on the document */
+      /* Current Edits will show a list of edits in the last day*/
+      /* Past edits will include edits made in previous days*/
+      .row:after {
+        content: "";
+        display: table;
+        clear: both;
+      }
+    </style>
+    <base target="_top">
+   <script>
+     function submitForm() {
+       google.script.run.appendRowFromFormSubmit(document.getElementById("employeeForm"));
+     }
+     function loadData() {
+        google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).loadCell();
+      }
+          /**
+       * onSuccess function acts as the success handler for the load data function
+       * It updates the sidebar information based on the cell object returned from the loadCell function in the google script
+      */
+      function onSuccess(cell) {
+        console.log('onSuccess handler called with cell history: ', cell.history)
+        var list = document.getElementById('historyList');
+        document.getElementById('rowNum').innerHTML = cell.row;
+        document.getElementById('colNum').innerHTML = cell.col;
+        document.getElementById('currValue').innerHTML = cell.currValue;
+        var fragment = document.createDocumentFragment();
+        if (cell.history.length == 0) {
+          list.innerHTML = `<span style="padding:10px; font-size: 18px">No session history</span>`;
+        }
+        if(cell.cellChanged == 'true') {
+          fragment.replaceChildren();
+          list.innerHTML = '';
+        }
+        if (cell.history.length > 0 && cell.history.length > list.childElementCount) {
+          list.innerHTML = '';
+          if(cell.cellChanged) {
+            cell.history.forEach(historyObj => {
+              createBlock(historyObj, fragment);
+            });
+          } else {
+            let historyObj = cell.history[cell.history.length-1];
+            createBlock(historyObj, fragment);
+          }
+        }
+        list.appendChild(fragment);
+        loadData();
+      }
+      /**
+       * onFailure function is the failure handler for the loadData function
+       * It produces an alert if there is an error
+      */
+      function onFailure(error) {
+        alert(error)
+      }
+      /**
+       * createBlock function creates the html for each history block on the side bar
+      */
+      function createBlock(historyObj, fragment) {
+        let listItem = document.createElement('div');
+        listItem.innerHTML = 
+        `<div style="border: 1px solid black; margin-bottom: 20px; display: flex; flex-direction: column; padding: 10px;">
+          <span style="margin-bottom:10px;">${new Date(historyObj.timestamp).toLocaleString('en-us')}</span>
+          <span style="margin-bottom:5px;">Value Right Now: ${historyObj.newValue}</span>
+          <span style="margin-bottom:5px;">Function: ${historyObj.formula || 'Manual Entry'}</span>
+          <span style="font-size: 16px">Previous Value: ${historyObj.oldValue}</span>
+        </div>`;
+        fragment.prepend(listItem);
+      }
+      // name is displayed on screen
+      function displayToast() {
+   var name = document.getElementById('name').value;
+   google.script.run.displayToast(name);
+ }
+ function showPrompt() {
+  var ui = SpreadsheetApp.getUi(); // Same variations.
+
+  var result = ui.prompt(
+      'Please enter your name:',
+      ui.ButtonSet.OK_CANCEL);
+
+  // Process the user's response.
+  var button = result.getSelectedButton();
+  var text = result.getResponseText();
+  if (button == ui.Button.OK) {
+    // User clicked "OK".
+    ui.alert('Entered name ' + text + '.');
+  } else if (button == ui.Button.CANCEL) {
+    // User clicked "Cancel".
+    ui.alert('I didn\'t get your name.');
+  } else if (button == ui.Button.CLOSE) {
+    // User clicked X in the title bar.
+    ui.alert('You closed the dialog.');
+  }
+}
+   </script>
+  </head>
+  <body onload="loadData()">
+    <input type="button" value="Click for    Spreadsheet Reset" onclick="alert('Spreadsheet reset');">
+        <div class="sidebar">
+      <a class="active" href="#">Home</a>
+
+      <a href="#">Current Edits</a>
+      <a href="#">Past Edits</a>
+    </div>
+
+    <div class="content">
+      <div class="row">
+        <div class="column">
+          <h2>Current Project</h2>
+          <p>Name of file and brief description.</p>
+        </div>
+      </div>
+    </div>
+      <h1>Enter employee details</h1>
+   <form id="employeeForm">
+     <label for="firstName">First name</label>
+     <input type="text" id="firstName" name="firstName"><br><br>
+     <label for="lastName">Last name</label>
+     <input type="text" id="lastName" name="lastName"><br><br>
+     <div>
+       <label for="department">Department:</label><br>
+       <input type="radio" id="sales" name="department" value="Sales">
+       <label for="sales">Sales</label><br>
+       <input type="radio" id="marketing" name="department" value="Marketing">
+       <label for="marketing">Marketing</label><br>
+       <input type="radio" id="product" name="department" value="Product">
+       <label for="product">Product</label><br>
+       <input type="radio" id="engineering" name="department" value="Engineering">
+       <label for="engineering">Engineering</label><br><br>
+       <input type="button" value="Submit" onclick="submitForm();">
+   </form>
+  </body>
+</html>
+
+
